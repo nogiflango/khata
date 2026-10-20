@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="kn">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f6b4f">
+<title>ಅಶೋಕ್ ಖಾತೆ · Ashok Khata</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<style>
+  html, body { margin: 0; height: 100%; background: #f6f4ef; overflow: hidden; }
+  body { font-family: system-ui, -apple-system, "Noto Sans Kannada", Roboto, sans-serif; color: #1d1d1b; }
+  #app { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; background: #f6f4ef; }
+  #status { position: fixed; inset: 0; z-index: 2; display: flex; flex-direction: column; align-items: center;
+            justify-content: center; gap: 18px; padding: 24px; text-align: center; background: #f6f4ef; font-size: 18px; }
+  .logo { width: 140px; height: 140px; border-radius: 32px; box-shadow: 0 6px 20px rgba(15,107,79,.25); }
+  .name { line-height: 1.2; }
+  .name b { display: block; font-size: 28px; font-weight: 800; color: #0f6b4f; }
+  .name span { display: block; font-size: 17px; font-weight: 600; color: #66665f; letter-spacing: .02em; }
+  .msg small { display: block; color: #66665f; font-size: 15px; margin-top: 4px; }
+  .spinner { width: 28px; height: 28px; border-radius: 50%; border: 3px solid #cfe3da; border-top-color: #0f6b4f;
+             animation: spin .9s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .actions { display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 320px; }
+  .btn { display: block; padding: 14px; border-radius: 12px; font-size: 17px; font-weight: 600; text-decoration: none;
+         text-align: center; border: 1px solid #0f6b4f; background: #0f6b4f; color: #fff; font-family: inherit; }
+  .btn.ghost { background: #fff; color: #0f6b4f; }
+  #help { position: fixed; left: 0; right: 0; bottom: 0; z-index: 3; display: flex; align-items: center; gap: 8px;
+          padding: 10px 12px calc(10px + env(safe-area-inset-bottom)); background: #1d1d1b; color: #fff; font-size: 15px; }
+  #help span { flex: 1; }
+  #help button, #help a { background: #fff; color: #1d1d1b; border: 0; border-radius: 8px; padding: 8px 10px;
+                          font-size: 14px; font-weight: 600; text-decoration: none; font-family: inherit; white-space: nowrap; }
+  #help .x { background: none; color: #fff; font-size: 22px; padding: 0 4px; }
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<iframe id="app" title="ಅಶೋಕ್ ಖಾತೆ · Ashok Khata" allow="clipboard-write"></iframe>
+
+<div id="status">
+  <img class="logo" src="icon-512.png" alt="">
+  <div class="name"><b>ಅಶೋಕ್ ಖಾತೆ</b><span>Ashok Khata</span></div>
+  <div class="spinner" id="spinner"></div>
+  <div class="msg" id="msg"></div>
+  <div class="actions" id="actions" hidden>
+    <button class="btn" onclick="load()">ಮತ್ತೆ ಪ್ರಯತ್ನಿಸಿ · Try again</button>
+    <a class="btn ghost" id="openDirect" target="_blank" rel="noopener">Chrome ನಲ್ಲಿ ತೆರೆಯಿರಿ · Open in Chrome</a>
+  </div>
+</div>
+
+<div id="help" hidden>
+  <span>ಖಾತೆ ತೆರೆಯುತ್ತಿಲ್ಲವೇ? · Not loading?</span>
+  <button onclick="load()">ಮತ್ತೆ · Retry</button>
+  <a id="helpDirect" target="_blank" rel="noopener">Chrome</a>
+  <button class="x" onclick="hideHelp()" aria-label="close">×</button>
+</div>
+
+<script>
+  // ↓↓↓ Paste your Apps Script web app link here (Deploy → Manage deployments → Web app URL, ends in /exec).
+  const APP_URL = 'https://script.google.com/macros/s/AKfycbxfA6yhW0A5aY0RBTSVoNlqGkEl6Uem1q8D4sQAjo5nNqhf5xlQDSaDT5jK-1FR5Hyk/exec'
+  // ↑↑↑
+
+  const $ = id => document.getElementById(id);
+  const WAIT_MS = 15000;
+  let ready = false;
+  let timer = null;
+
+  $('openDirect').href = APP_URL;
+  $('helpDirect').href = APP_URL;
+
+  function showStatus(kn, en, withActions) {
+    $('status').hidden = false;
+    $('spinner').hidden = !!withActions;
+    $('actions').hidden = !withActions;
+    $('msg').innerHTML = kn + '<small>' + en + '</small>';
+  }
+  function hideHelp() { $('help').hidden = true; }
+
+  function load() {
+    hideHelp();
+    clearTimeout(timer);
+    ready = false;
+    if (APP_URL.indexOf('PASTE_') === 0) {
+      showStatus('ಸೆಟಪ್ ಮುಗಿದಿಲ್ಲ', 'Setup not finished: paste the web app link into index.html.', false);
+      $('spinner').hidden = true;
+      return;
+    }
+    if (!navigator.onLine) {
+      showStatus('ಇಂಟರ್ನೆಟ್ ಇಲ್ಲ', 'No internet connection. Connect, then try again.', true);
+      return;
+    }
+    showStatus('ಖಾತೆ ತೆರೆಯುತ್ತಿದೆ…', 'Opening the ledger…', false);
+    $('app').src = APP_URL;
+    // If the ledger hasn't said it's ready by now, show whatever loaded plus a small help bar.
+    timer = setTimeout(() => {
+      if (ready) return;
+      $('status').hidden = true;
+      $('help').hidden = false;
+    }, WAIT_MS);
+  }
+
+  // The ledger page sends 'khata-ready' once it has drawn its first screen.
+  window.addEventListener('message', e => {
+    let host = '';
+    try { host = new URL(e.origin).hostname; } catch (err) { return; }
+    const trusted = /\.googleusercontent\.com$/.test(host) || host === 'script.google.com' ||
+                    e.origin === new URL(APP_URL, location.href).origin;
+    if (!trusted || e.data !== 'khata-ready') return;
+    ready = true;
+    clearTimeout(timer);
+    $('status').hidden = true;
+    hideHelp();
+  });
+
+  window.addEventListener('online', () => { if (!ready) load(); });
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  load();
+</script>
+</body>
+</html>
